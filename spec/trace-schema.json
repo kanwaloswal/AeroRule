@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AeroRule Trace",
+  "type": "object",
+  "properties": {
+    "ruleId": {
+      "type": "string",
+      "description": "The ID of the rule that was evaluated"
+    },
+    "condition": {
+      "type": "string",
+      "description": "The CEL condition evaluated"
+    },
+    "matched": {
+      "type": "boolean",
+      "description": "Whether the condition evaluated to true"
+    },
+    "evaluationError": {
+      "type": "string",
+      "description": "Error message if evaluation failed"
+    },
+    "executionTimeMs": {
+      "type": "integer",
+      "description": "Time taken to evaluate the rule in milliseconds"
+    },
+    "actionTaken": {
+      "type": "string",
+      "description": "The action triggered (from onSuccess or onFailure)"
+    },
+    "inputs": {
+      "type": "object",
+      "description": "The variables and their values provided to the CEL environment during evaluation",
+      "additionalProperties": true
+    },
+    "evaluatedExpressions": {
+      "type": "object",
+      "description": "A map of sub-expressions or variables to their resolved values",
+      "additionalProperties": true
+    }
+  },
+  "required": ["ruleId", "condition", "matched"]
+}

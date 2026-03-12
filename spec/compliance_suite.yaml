@@ -1,0 +1,27 @@
+rules:
+  - id: "rule-1"
+    description: "Allow if age >= 18"
+    condition: "user.age >= 18"
+    onSuccess:
+      action: "ALLOW"
+    onFailure:
+      action: "DENY"
+
+tests:
+  - name: "Basic Match"
+    ruleId: "rule-1"
+    context:
+      user:
+        age: 20
+    expectedTrace:
+      matched: true
+      actionTaken: "ALLOW"
+
+  - name: "Basic Mismatch"
+    ruleId: "rule-1"
+    context:
+      user:
+        age: 16
+    expectedTrace:
+      matched: false
+      actionTaken: "DENY"

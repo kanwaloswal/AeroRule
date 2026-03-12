@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AeroRule",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the rule"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the rule"
+    },
+    "priority": {
+      "type": "integer",
+      "description": "Priority of the rule (higher executes earlier if grouped)"
+    },
+    "condition": {
+      "type": "string",
+      "description": "CEL expression that evaluates to a boolean"
+    },
+    "onSuccess": {
+      "type": "object",
+      "description": "Action to take when condition evaluates to true",
+      "properties": {
+        "action": {"type": "string"},
+        "metadata": {"type": "object"}
+      },
+      "required": ["action"]
+    },
+    "onFailure": {
+      "type": "object",
+      "description": "Action to take when condition evaluates to false",
+      "properties": {
+        "action": {"type": "string"},
+        "metadata": {"type": "object"}
+      },
+      "required": ["action"]
+    }
+  },
+  "required": ["id", "condition"]
+}
