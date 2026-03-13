@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AeroRule Provider Configuration",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["filesystem", "git", "jdbc"],
+      "description": "The type of rule provider to initialize"
+    },
+    "filesystem": {
+      "type": "object",
+      "properties": {
+        "directory": {
+          "type": "string",
+          "description": "Path to the local directory containing rule files"
+        },
+        "watchEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to actively watch the directory for file changes"
+        }
+      },
+      "required": ["directory"]
+    },
+    "git": {
+      "type": "object",
+      "properties": {
+        "repoUrl": {
+          "type": "string",
+          "description": "URL of the Git repository"
+        },
+        "branch": {
+          "type": "string",
+          "default": "main"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "directory": {
+          "type": "string",
+          "description": "Subdirectory within the repository where rules are located"
+        },
+        "authType": {
+          "type": "string",
+          "enum": ["none", "ssh", "pat"],
+          "default": "none"
+        },
+        "sshKeyPath": {
+          "type": "string",
+          "description": "Path to the SSH private key (if authType=ssh)"
+        },
+        "token": {
+          "type": "string",
+          "description": "Personal Access Token (if authType=pat)"
+        }
+      },
+      "required": ["repoUrl"]
+    },
+    "jdbc": {
+      "type": "object",
+      "properties": {
+        "jdbcUrl": {
+          "type": "string",
+          "description": "JDBC connection string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "tableName": {
+          "type": "string",
+          "default": "aero_rules"
+        },
+        "driverClass": {
+          "type": "string"
+        }
+      },
+      "required": ["jdbcUrl"]
+    }
+  },
+  "required": ["type"]
+}

@@ -19,7 +19,7 @@ public class RuleEvaluator {
         this.rule = rule;
     }
 
-    public void compile(Map<String, Object> contextDefinition) throws CelValidationException {
+    public void compile(Map<String, Object> contextDefinition) throws CelValidationException, CelEvaluationException {
         dev.cel.compiler.CelCompilerBuilder compilerBuilder = CelCompilerFactory.standardCelCompilerBuilder();
         for (String key : contextDefinition.keySet()) {
             compilerBuilder.addVar(key, SimpleType.DYN);
@@ -43,7 +43,7 @@ public class RuleEvaluator {
                 compile(context); // JIT compile if not pre-compiled
             }
             
-            Object result = program.execute(context);
+            Object result = program.eval(context);
             if (result instanceof Boolean) {
                 boolean matched = (Boolean) result;
                 trace.setMatched(matched);
