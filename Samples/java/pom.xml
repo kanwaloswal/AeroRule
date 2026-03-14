@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.example.samples</groupId>
+  <artifactId>aero-rule-samples</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <properties>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <!-- Dependency on the local AeroRule java library -->
+    <dependency>
+      <groupId>com.aerorule</groupId>
+      <artifactId>aero-core</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <!-- We need Jackson for parsing our JSON rule files since FileSystemProvider might emit Rule objects directly, but we can also use FileSystemProvider or ObjectMapper to create our Maps from Java objects -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.15.2</version>
+    </dependency>
+  </dependencies>
+  
+  <build>
+      <plugins>
+          <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>exec-maven-plugin</artifactId>
+              <version>3.1.0</version>
+              <configuration>
+                  <!-- The main class will be supplied via command line -->
+              </configuration>
+          </plugin>
+      </plugins>
+  </build>
+</project>

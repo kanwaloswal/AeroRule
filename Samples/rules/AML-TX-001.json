@@ -1,0 +1,12 @@
+{
+  "id": "AML-TX-001",
+  "description": "Flag large transactions for commercial clients.",
+  "priority": 20,
+  "condition": "transaction.amount > 10000.0 && transaction.currency == \"USD\" && customer.type == \"RETAIL\"",
+  "onSuccess": {
+    "action": "SUBMIT_STR"
+  },
+  "onFailure": {
+    "action": "LOG_COMPLIANT"
+  }
+}

@@ -1,0 +1,10 @@
+pyproject.toml
+aero_cli.egg-info/PKG-INFO
+aero_cli.egg-info/SOURCES.txt
+aero_cli.egg-info/dependency_links.txt
+aero_cli.egg-info/entry_points.txt
+aero_cli.egg-info/requires.txt
+aero_cli.egg-info/top_level.txt
+aerocli/config.py
+aerocli/llm.py
+aerocli/main.py

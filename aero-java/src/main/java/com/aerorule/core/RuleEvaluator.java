@@ -11,9 +11,11 @@ import dev.cel.runtime.CelEvaluationException;
 
 import java.util.Map;
 
-public class RuleEvaluator {
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;public class RuleEvaluator {
     private final Rule rule;
     private CelRuntime.Program program;
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public RuleEvaluator(Rule rule) {
         this.rule = rule;
@@ -31,6 +33,8 @@ public class RuleEvaluator {
         CelRuntime runtime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
         this.program = runtime.createProgram(ast);
     }
+
+
 
     public Trace evaluate(Map<String, Object> context) {
         long startTime = System.currentTimeMillis();
@@ -63,5 +67,33 @@ public class RuleEvaluator {
 
         trace.setExecutionTimeMs(System.currentTimeMillis() - startTime);
         return trace;
+    }
+
+    public Trace evaluateWithObjects(Map<String, Object> objectContext) {
+        // Convert all POJOs in the map into their Map representations
+        Map<String, Object> executionContext = new java.util.HashMap<>();
+        
+        for (Map.Entry<String, Object> entry : objectContext.entrySet()) {
+            // Convert each POJO (e.g., Customer, Approver) to a Map
+            Map<String, Object> objectAsMap = mapper.convertValue(entry.getValue(), new TypeReference<Map<String, Object>>() {});
+            executionContext.put(entry.getKey(), objectAsMap);
+        }
+        
+        // If not compiled yet, JIT compile with the mapped definitions
+        if (this.program == null) {
+            try {
+                compile(executionContext);
+            } catch (Exception e) {
+                Trace trace = new Trace();
+                trace.setRuleId(rule.getId());
+                trace.setCondition(rule.getCondition());
+                trace.setMatched(false);
+                trace.setEvaluationError("Failed to JIT compile rule for objects: " + e.getMessage());
+                return trace;
+            }
+        }
+
+        // Defer to the original Map-based evaluate logic
+        return evaluate(executionContext);
     }
 }

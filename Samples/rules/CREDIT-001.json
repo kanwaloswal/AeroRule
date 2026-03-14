@@ -1,0 +1,12 @@
+{
+  "id": "CREDIT-001",
+  "description": "Evaluate if a commercial customer meets requirements for loan approval.",
+  "priority": 10,
+  "condition": "customer.riskScore < 700 && customer.annualRevenue > 5000000 && account.type == \"COMMERCIAL\"",
+  "onSuccess": {
+    "action": "APPROVE_LOAN"
+  },
+  "onFailure": {
+    "action": "DENY_LOAN"
+  }
+}

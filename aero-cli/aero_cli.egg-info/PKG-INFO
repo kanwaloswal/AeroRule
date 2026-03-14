@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: aero-cli
+Version: 0.1.0
+Summary: Command Center for the AeroRule ecosystem
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: typer[all]>=0.12.0
+Requires-Dist: pydantic>=2.7.0
+Requires-Dist: openai>=1.12.0
+Requires-Dist: anthropic>=0.21.0
+Requires-Dist: google-generativeai>=0.4.0
+Requires-Dist: rich>=13.7.0
+Requires-Dist: cel-python
+Requires-Dist: pyyaml>=6.0.1
+Requires-Dist: termcolor>=2.4.0
