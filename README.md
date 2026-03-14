@@ -41,6 +41,10 @@ Trace trace = evaluator.evaluate(Map.of(
 System.out.println("Condition matched: " + trace.isMatched());
 System.out.println("Action taken: " + trace.getActionTaken());
 System.out.println("Execution time (ms): " + trace.getExecutionTimeMs());
+
+// 3. (Optional) Evaluate using POJOs directly
+Customer customer = new Customer("CUST-100", 600, 8000000L);
+Trace pojoTrace = evaluator.evaluateWithObjects(Map.of("customer", customer));
 ```
 
 ### Python Integration (`aero-python`)
