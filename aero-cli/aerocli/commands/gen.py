@@ -14,7 +14,7 @@ app = typer.Typer(help="Generate an AeroRule from a natural language prompt")
 console = Console()
 
 def get_schema_context() -> str:
-    spec_dir = Path("/Users/sunny/Documents/work/1000844339_Ontario/AeroRule/spec")
+    spec_dir = Path(__file__).resolve().parent.parent.parent.parent / "spec"
     schemas = []
     
     # Primary schema

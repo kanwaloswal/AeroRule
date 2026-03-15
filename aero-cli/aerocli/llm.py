@@ -49,7 +49,7 @@ def generate_rule(prompt: str, context: str, config: AeroConfig) -> str:
     
     if config.provider in ["openai", "ollama", "grok"]:
         response = client.chat.completions.create(
-            model="gpt-4o" if config.provider == "openai" else ("llama3" if config.provider == "ollama" else "grok-1"),
+            model=config.model,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": full_prompt}
@@ -61,7 +61,7 @@ def generate_rule(prompt: str, context: str, config: AeroConfig) -> str:
     
     elif config.provider == "anthropic":
         response = client.messages.create(
-            model="claude-3-opus-20240229",
+            model=config.model,
             max_tokens=1000,
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": full_prompt}]
@@ -69,7 +69,7 @@ def generate_rule(prompt: str, context: str, config: AeroConfig) -> str:
         return response.content[0].text
     
     elif config.provider == "gemini":
-        model = client.GenerativeModel("gemini-1.5-pro")
+        model = client.GenerativeModel(config.model)
         response = model.generate_content(f"{SYSTEM_PROMPT}\n\n{full_prompt}")
         return response.text
     

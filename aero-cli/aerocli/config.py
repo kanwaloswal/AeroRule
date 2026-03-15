@@ -9,6 +9,7 @@ CONFIG_FILE = CONFIG_DIR / "config"
 
 class AeroConfig(BaseModel):
     provider: str = Field(..., description="LLM Provider (openai, anthropic, gemini, grok, ollama)")
+    model: str = Field(..., description="Specific model name (e.g., gpt-4o, claude-3-opus, llama3)")
     api_key: Optional[str] = Field(None, description="API Key for the provider")
     base_url: Optional[str] = Field(None, description="Base URL (especially for Ollama or Grok)")
     rules_dir: str = Field("./rules", description="Local rules directory")

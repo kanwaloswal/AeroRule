@@ -6,7 +6,7 @@ from rich.table import Table
 from pydantic import ValidationError
 # Importing models from aero-python
 import sys
-sys.path.append("/Users/sunny/Documents/work/1000844339_Ontario/AeroRule/aero-python")
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent / "aero-python"))
 from aerorule.models import Rule
 import celpy
 

@@ -8,7 +8,7 @@ from rich.table import Table
 import sys
 
 # Importing from aero-python
-sys.path.append("/Users/sunny/Documents/work/1000844339_Ontario/AeroRule/aero-python")
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent / "aero-python"))
 from aerorule.models import Rule
 from aerorule.evaluator import RuleEvaluator
 from ..config import load_config
@@ -37,8 +37,10 @@ def load_all_rules(rules_dir: Path, suite_rules: List[Dict[str, Any]]) -> Dict[s
                 
     return rules
 
+DEFAULT_SUITE_PATH = str(Path(__file__).resolve().parent.parent.parent.parent / "spec" / "compliance_suite.yaml")
+
 @app.command()
-def run(suite_path: Path = typer.Option("/Users/sunny/Documents/work/1000844339_Ontario/AeroRule/spec/compliance_suite.yaml", help="Path to compliance suite")):
+def run(suite_path: Path = typer.Option(DEFAULT_SUITE_PATH, help="Path to compliance suite")):
     """Run compliance tests."""
     if not suite_path.exists():
         console.print(f"[bold red]Error:[/bold red] Compliance suite not found: [cyan]{suite_path}[/cyan]")

@@ -1,0 +1,10 @@
+Lending Policy 2026
+
+Restricted Industries:
+Customers operating in the 'Gambling' or 'Cannabis' industries are strictly prohibited from receiving loans. Any deal associated with these industries must be declined automatically.
+
+Commitment vs Revenue Threshold:
+To ensure sustainable lending, the total commitment of any single deal must not exceed 50% of the customer's total revenue. If the total commitment is greater than 50% of the customer's total revenue, the deal must be flagged for manual review.
+
+Risk Score Minimum:
+Customers must have a minimum risk score of 500. If the risk score is below 500, the deal must be declined.

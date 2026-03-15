@@ -1,0 +1,11 @@
+{
+  "$id": "https://aerorule.com/customer.schema.json",
+  "title": "Customer",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string" },
+    "riskScore": { "type": "integer" },
+    "annualRevenue": { "type": "number" }
+  },
+  "required": ["id", "riskScore"]
+}
