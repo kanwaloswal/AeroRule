@@ -1,0 +1,39 @@
+{
+    "$id": "https://aerorule.com/property.schema.json",
+    "title": "Property",
+    "type": "object",
+    "properties": {
+        "propertyId": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "goodAndMarketableTitle": {
+            "type": "boolean"
+        },
+        "priorEncumbrances": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ownerOccupied": {
+            "type": "boolean"
+        },
+        "numberOfUnits": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4
+        },
+        "improvementAmount": {
+            "type": "number"
+        }
+    },
+    "required": [
+        "propertyId",
+        "goodAndMarketableTitle",
+        "ownerOccupied",
+        "numberOfUnits"
+    ]
+}

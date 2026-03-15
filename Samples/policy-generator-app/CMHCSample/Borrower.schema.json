@@ -1,0 +1,39 @@
+{
+    "$id": "https://aerorule.com/borrower.schema.json",
+    "title": "Borrower",
+    "type": "object",
+    "properties": {
+        "borrowerId": {
+            "type": "string"
+        },
+        "creditScore": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "income": {
+            "type": "number"
+        },
+        "equity": {
+            "type": "number"
+        },
+        "isNonPermanentResident": {
+            "type": "boolean"
+        },
+        "isSelfEmployed": {
+            "type": "boolean"
+        },
+        "persons": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "creditWorthiness": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "borrowerId",
+        "creditScore"
+    ]
+}

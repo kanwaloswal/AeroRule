@@ -7,9 +7,12 @@ class Action(BaseModel):
 
 class Rule(BaseModel):
     id: str
+    name: Optional[str] = None
     description: Optional[str] = None
     priority: Optional[int] = None
     condition: str
+    sourceQuote: Optional[str] = None
+    sourceDocument: Optional[str] = None
     onSuccess: Optional[Action] = None
     onFailure: Optional[Action] = None
 

@@ -7,6 +7,10 @@
       "type": "string",
       "description": "Unique identifier for the rule"
     },
+    "name": {
+      "type": "string",
+      "description": "Short, human-readable name of the rule"
+    },
     "description": {
       "type": "string",
       "description": "Human-readable description of the rule"
@@ -18,6 +22,14 @@
     "condition": {
       "type": "string",
       "description": "CEL expression that evaluates to a boolean"
+    },
+    "sourceQuote": {
+      "type": "string",
+      "description": "The exact verbatim text from the business policy or regulatory document that inspired this rule"
+    },
+    "sourceDocument": {
+      "type": "string",
+      "description": "Reference to the actual document and version where the sourceQuote originated"
     },
     "onSuccess": {
       "type": "object",

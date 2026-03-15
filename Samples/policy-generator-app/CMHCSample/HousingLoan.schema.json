@@ -1,0 +1,87 @@
+{
+    "$id": "https://aerorule.com/housingloan.schema.json",
+    "title": "HousingLoan",
+    "type": "object",
+    "properties": {
+        "loanId": {
+            "type": "string"
+        },
+        "loanType": {
+            "type": "string",
+            "enum": [
+                "HomeownerPurchase",
+                "SmallRental",
+                "HomeownerRefinance"
+            ]
+        },
+        "unpaidPrincipalBalance": {
+            "type": "number"
+        },
+        "ltvRatio": {
+            "type": "number"
+        },
+        "lendingValue": {
+            "type": "number"
+        },
+        "purchasePrice": {
+            "type": "number"
+        },
+        "downPaymentAmount": {
+            "type": "number"
+        },
+        "downPaymentType": {
+            "type": "string",
+            "enum": [
+                "Traditional",
+                "NonTraditional"
+            ]
+        },
+        "amortizationPeriod": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "advanced",
+                "default",
+                "repaid"
+            ]
+        },
+        "coverageEffectiveDate": {
+            "type": "string",
+            "format": "date"
+        },
+        "defaultDate": {
+            "type": "string",
+            "format": "date"
+        },
+        "gdsRatio": {
+            "type": "number"
+        },
+        "tdsRatio": {
+            "type": "number"
+        },
+        "contractInterestRate": {
+            "type": "number"
+        },
+        "numberOfUnits": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4
+        },
+        "ecoPlusEligible": {
+            "type": "boolean"
+        },
+        "ecoImprovementAmount": {
+            "type": "number"
+        }
+    },
+    "required": [
+        "loanId",
+        "loanType",
+        "unpaidPrincipalBalance",
+        "ltvRatio",
+        "lendingValue",
+        "numberOfUnits"
+    ]
+}
