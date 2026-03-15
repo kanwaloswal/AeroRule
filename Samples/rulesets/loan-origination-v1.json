@@ -1,0 +1,35 @@
+{
+  "id": "loan-origination-v1",
+  "name": "Loan Origination Policy",
+  "description": "Sequential gate checks for loan approval: credit score, income, and loan-to-value ratio",
+  "executionStrategy": "GATED",
+  "rules": [
+    {
+      "id": "CREDIT-001",
+      "name": "Credit Score Check",
+      "description": "Applicant must have a minimum credit score of 680",
+      "priority": 100,
+      "condition": "customer.creditScore >= 680",
+      "onSuccess": { "action": "PASS", "metadata": { "message": "Credit score meets minimum threshold" } },
+      "onFailure": { "action": "DECLINE", "metadata": { "reason": "Credit score below 680" } }
+    },
+    {
+      "id": "INCOME-001",
+      "name": "Income Verification",
+      "description": "Applicant must earn at least $40,000 annually",
+      "priority": 90,
+      "condition": "customer.annualIncome >= 40000",
+      "onSuccess": { "action": "PASS", "metadata": { "message": "Income requirement met" } },
+      "onFailure": { "action": "DECLINE", "metadata": { "reason": "Annual income below $40,000" } }
+    },
+    {
+      "id": "LTV-001",
+      "name": "Loan-to-Value Ratio",
+      "description": "Loan amount must not exceed 5x annual income",
+      "priority": 80,
+      "condition": "loan.amount <= customer.annualIncome * 5",
+      "onSuccess": { "action": "APPROVE_LOAN", "metadata": { "message": "Loan approved — all gates passed" } },
+      "onFailure": { "action": "FLAG_FOR_REVIEW", "metadata": { "reason": "Loan amount exceeds 5x annual income" } }
+    }
+  ]
+}

@@ -70,6 +70,72 @@ def process_user(user: dict):
 result = process_user(user={"age": 20})
 ```
 
+## RuleSet Engine
+
+While individual rules are useful, real-world policies involve **multiple rules evaluated together**. AeroRule provides a **RuleSet Engine** that groups rules and evaluates them using configurable execution strategies.
+
+### Execution Strategies
+
+| Strategy | Behavior | Use Case |
+|----------|----------|----------|
+| `ALL` | Run every rule, collect all traces. | Audit / compliance reporting. |
+| `GATED` | Run in order, **stop on first failure**. | Sequential approval gates. |
+
+### Example RuleSet (`GATED` Strategy)
+
+```json
+{
+  "id": "loan-origination-v1",
+  "name": "Loan Origination Policy",
+  "executionStrategy": "GATED",
+  "rules": [
+    { "id": "CREDIT-001", "condition": "customer.creditScore >= 680",
+      "onSuccess": { "action": "PASS" }, "onFailure": { "action": "DECLINE" } },
+    { "id": "INCOME-001", "condition": "customer.annualIncome >= 40000",
+      "onSuccess": { "action": "PASS" }, "onFailure": { "action": "DECLINE" } },
+    { "id": "LTV-001", "condition": "loan.amount <= customer.annualIncome * 5",
+      "onSuccess": { "action": "APPROVE_LOAN" }, "onFailure": { "action": "FLAG_FOR_REVIEW" } }
+  ]
+}
+```
+
+### Python Usage
+
+```python
+from aerorule import RuleSetEngine
+
+engine = RuleSetEngine.from_file("rules/loan-origination-v1.json")
+result = engine.evaluate({
+    "customer": {"creditScore": 720, "annualIncome": 85000},
+    "loan": {"amount": 250000}
+})
+
+print(result.passed)       # True
+print(result.summary)      # "3/3 rules passed"
+print(len(result.traces))  # 3 individual Trace objects
+```
+
+### Java Usage
+
+```java
+import com.aerorule.core.engine.*;
+
+RuleSetEngine engine = RuleSetEngine.fromFile("rules/loan-origination-v1.json");
+RuleSetTrace result = engine.evaluate(Map.of(
+    "customer", Map.of("creditScore", 720, "annualIncome", 85000),
+    "loan", Map.of("amount", 250000)
+));
+
+System.out.println(result.isPassed());   // true
+System.out.println(result.getSummary()); // "3/3 rules passed"
+```
+
+### CLI Usage
+
+```bash
+aero run ruleset loan-origination-v1.json --context context.json
+```
+
 ## Financial Services Use Cases
 
 AeroRule is exceptionally well-suited for Financial Services where audibility, complex arithmetic, and strict condition evaluations are required without complex deployment cycles.

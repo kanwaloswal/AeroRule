@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from pydantic import BaseModel, Field
+from typing import Optional, Dict, Any, List, Literal
 
 class Action(BaseModel):
     action: str
@@ -23,3 +23,19 @@ class Trace(BaseModel):
     evaluationError: Optional[str] = None
     executionTimeMs: Optional[int] = None
     actionTaken: Optional[str] = None
+
+class RuleSet(BaseModel):
+    id: str
+    name: Optional[str] = None
+    description: Optional[str] = None
+    executionStrategy: Literal["ALL", "GATED"] = "ALL"
+    rules: List[Rule]
+
+class RuleSetTrace(BaseModel):
+    ruleSetId: str
+    passed: bool
+    strategy: str
+    traces: List[Trace]
+    executionTimeMs: int
+    summary: str
+

@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AeroRule RuleSet",
+  "description": "Defines a group of rules to be evaluated together with a specific execution strategy",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the ruleset"
+    },
+    "name": {
+      "type": "string",
+      "description": "Short, human-readable name of the ruleset"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the ruleset's purpose"
+    },
+    "executionStrategy": {
+      "type": "string",
+      "enum": ["ALL", "GATED"],
+      "default": "ALL",
+      "description": "ALL = evaluate every rule and collect all traces. GATED = evaluate in order and stop on first failure."
+    },
+    "rules": {
+      "type": "array",
+      "items": { "$ref": "rule-schema.json" },
+      "description": "Ordered list of rules to evaluate"
+    }
+  },
+  "required": ["id", "rules"]
+}

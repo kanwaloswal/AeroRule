@@ -1,6 +1,6 @@
 import typer
 from rich.console import Console
-from .commands import init, gen, verify, test, config, models
+from .commands import init, gen, verify, test, config, models, run
 
 app = typer.Typer(
     help="AeroRule CLI - The Command Center for the AeroRule ecosystem",
@@ -14,6 +14,7 @@ app.add_typer(verify.app, name="verify")
 app.add_typer(test.app, name="test")
 app.add_typer(config.app, name="config")
 app.add_typer(models.app, name="models")
+app.add_typer(run.app, name="run")
 
 @app.command()
 def version():
