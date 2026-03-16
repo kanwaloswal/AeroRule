@@ -4,9 +4,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from pydantic import ValidationError
-# Importing models from aero-python
-import sys
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent / "aero-python"))
+import json
 from aerorule.models import Rule
 import celpy
 
@@ -54,7 +52,6 @@ def file(path: Path = typer.Argument(..., help="Path to the rule JSON file")):
         table.add_row("CEL Logic", "[yellow]SKIP[/yellow]", "Condition field missing")
 
     console.print(table)
-    
-    # Final exit code based on passes
-    # (Simplified: if any FAIL, exit 1)
-    # We could be more precise, but this is good for CI
+
+    if "[red]FAIL[/red]" in str(table):
+        raise typer.Exit(1)

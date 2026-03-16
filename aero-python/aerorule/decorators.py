@@ -20,7 +20,7 @@ def aerorule(rule_def: Dict[str, Any]):
             else:
                 return {
                     "error": "AeroRule evaluation failed or denied access",
-                    "trace": trace.dict()
+                    "trace": trace.model_dump()
                 }
         return wrapper
     return decorator

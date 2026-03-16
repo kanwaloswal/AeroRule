@@ -30,7 +30,7 @@ import java.util.List;
 
 // 1. Initialize rules from your file system (or database)
 FileSystemProvider provider = new FileSystemProvider("/path/to/rules");
-List<Rule> rules = provider.loadRules();
+List<Rule> rules = provider.getRules();
 
 // 2. Evaluate a rule against an execution context
 RuleEvaluator evaluator = new RuleEvaluator(rules.get(0));
@@ -115,6 +115,8 @@ print(result.summary)      # "3/3 rules passed"
 print(len(result.traces))  # 3 individual Trace objects
 ```
 
+*See a full runnable example in [`Samples/python/run_ruleset.py`](AeroRule/Samples/python/run_ruleset.py).*
+
 ### Java Usage
 
 ```java
@@ -143,11 +145,12 @@ AeroRule is exceptionally well-suited for Financial Services where audibility, c
 Here are a few ways AeroRule can be applied in the financial sector:
 
 ### 1. Loan Origination (Credit & Income Eligibility)
-Evaluate if a customer meets dual requirements for loan approval.
+Evaluate if a commercial customer meets requirements for loan approval.
 ```json
 {
   "id": "CREDIT-001",
-  "condition": "credit_score >= 700 && annual_income > 50000",
+  "description": "Evaluate if a commercial customer meets requirements for loan approval.",
+  "condition": "customer.riskScore < 700 && customer.annualRevenue > 5000000 && account.type == \"COMMERCIAL\"",
   "onSuccess": { "action": "APPROVE_LOAN" },
   "onFailure": { "action": "DENY_LOAN" }
 }
@@ -175,16 +178,6 @@ Ensure a customer is verified and their account has existed long enough before g
 }
 ```
 
-### 4. Dynamic Risk Scoring & Sanctions
-Immediately halt accounts if a sanctions hit is detected or their compiled risk score is critically high.
-```json
-{
-  "id": "RISK-001",
-  "condition": "risk_score > 8 || sanctions_hit == true",
-  "onSuccess": { "action": "FREEZE_ACCOUNT" },
-  "onFailure": { "action": "CONTINUE" }
-}
-```
 
 ## Connecting AeroRule with an LLM
 

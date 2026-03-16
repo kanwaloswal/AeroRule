@@ -57,7 +57,7 @@ public class AmlTransactionSample {
         System.out.println("Evaluating AML Transaction Rule...\n");
 
         FileSystemProvider provider = new FileSystemProvider("../rules");
-        List<Rule> rules = provider.loadRules();
+        List<Rule> rules = provider.getRules();
 
         Optional<Rule> amlRule = rules.stream().filter(r -> r.getId().equals("AML-TX-001")).findFirst();
 

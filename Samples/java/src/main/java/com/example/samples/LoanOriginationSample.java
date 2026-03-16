@@ -4,10 +4,6 @@ import com.aerorule.core.Rule;
 import com.aerorule.core.RuleEvaluator;
 import com.aerorule.core.Trace;
 import com.aerorule.core.provider.FileSystemProvider;
-import com.aerorule.core.Rule;
-import com.aerorule.core.RuleEvaluator;
-import com.aerorule.core.Trace;
-import com.aerorule.core.provider.FileSystemProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -46,7 +42,7 @@ public class LoanOriginationSample {
 
         // 1. Initialize rules from the shared rules system
         FileSystemProvider provider = new FileSystemProvider("../rules");
-        List<Rule> rules = provider.loadRules();
+        List<Rule> rules = provider.getRules();
 
         // Find our loan rule
         Optional<Rule> loanRule = rules.stream().filter(r -> r.getId().equals("CREDIT-001")).findFirst();

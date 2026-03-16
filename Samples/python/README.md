@@ -20,4 +20,5 @@ Run the python files to see outputs driven by the JSON rules in `Samples/rules`.
 ```bash
 python loan_origination.py
 python aml_transaction.py
+python run_ruleset.py
 ```

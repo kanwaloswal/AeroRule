@@ -16,7 +16,7 @@
     <dependency>
       <groupId>com.aerorule</groupId>
       <artifactId>aero-core</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
     <!-- We need Jackson for parsing our JSON rule files since FileSystemProvider might emit Rule objects directly, but we can also use FileSystemProvider or ObjectMapper to create our Maps from Java objects -->
     <dependency>

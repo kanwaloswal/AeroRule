@@ -1,8 +1,11 @@
+import os
 import json
 from aerorule import aerorule
 
-# Load the shared rule definition
-with open('../rules/CREDIT-001.json', 'r') as f:
+base_dir = os.path.dirname(os.path.abspath(__file__))
+rule_path = os.path.join(base_dir, '../rules/CREDIT-001.json')
+
+with open(rule_path, 'r') as f:
     rule_def = json.load(f)
 
 # Domain classes are implicitly represented by dictionaries in the kwargs

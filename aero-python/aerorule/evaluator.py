@@ -4,6 +4,10 @@ from typing import Dict, Any
 from .models import Rule, Trace
 
 class RuleEvaluator:
+    """
+    Core evaluation engine for a single Rule. 
+    Compiles a CEL expression and evaluates it against a given context.
+    """
     def __init__(self, rule: Rule):
         self.rule = rule
         

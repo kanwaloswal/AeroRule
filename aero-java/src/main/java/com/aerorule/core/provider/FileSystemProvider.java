@@ -11,6 +11,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +21,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class FileSystemProvider implements RuleProvider, AutoCloseable {
+    private static final Logger logger = LoggerFactory.getLogger(FileSystemProvider.class);
     private final File directory;
     private final ObjectMapper objectMapper;
     private final Yaml yaml;
@@ -121,7 +127,7 @@ public class FileSystemProvider implements RuleProvider, AutoCloseable {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Failed to load rule from " + file.getName() + ": " + e.getMessage());
+            logger.error("Failed to load rule from {}: {}", file.getName(), e.getMessage(), e);
         }
     }
 
@@ -162,7 +168,7 @@ public class FileSystemProvider implements RuleProvider, AutoCloseable {
                 }
             });
         } catch (IOException e) {
-            System.err.println("Failed to initialize watch service: " + e.getMessage());
+            logger.error("Failed to initialize watch service: {}", e.getMessage(), e);
         }
     }
 

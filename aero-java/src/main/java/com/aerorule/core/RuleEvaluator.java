@@ -12,7 +12,15 @@ import dev.cel.runtime.CelEvaluationException;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.type.TypeReference;public class RuleEvaluator {
+import com.fasterxml.jackson.core.type.TypeReference;
+
+/**
+ * Core evaluation engine for a single Rule. 
+ * <p>
+ * Compiles a CEL expression and evaluates it against a given context.
+ * Thread-safe for evaluation, but recompiles CEL dynamically if not pre-compiled.
+ */
+public class RuleEvaluator {
     private final Rule rule;
     private CelRuntime.Program program;
     private static final ObjectMapper mapper = new ObjectMapper();

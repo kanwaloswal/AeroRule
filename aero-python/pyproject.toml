@@ -2,7 +2,7 @@
 name = "aerorule"
 version = "0.1.0"
 description = "AeroRule evaluation via CEL"
-authors = ["Author <author@example.com>"]
+authors = ["AeroRule Contributors <[EMAIL_ADDRESS]>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"

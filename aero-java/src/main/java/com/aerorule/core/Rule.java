@@ -1,5 +1,11 @@
 package com.aerorule.core;
 
+/**
+ * Represents a business rule definition compatible with the AeroRule schema.
+ * <p>
+ * A Rule consists of a CEL condition that evaluates against a context,
+ * and associated success or failure actions.
+ */
 public class Rule {
     private String id;
     private String name;
@@ -29,4 +35,39 @@ public class Rule {
     public void setOnSuccess(Action onSuccess) { this.onSuccess = onSuccess; }
     public Action getOnFailure() { return onFailure; }
     public void setOnFailure(Action onFailure) { this.onFailure = onFailure; }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Rule that = (Rule) o;
+        return java.util.Objects.equals(id, that.id) &&
+                java.util.Objects.equals(name, that.name) &&
+                java.util.Objects.equals(description, that.description) &&
+                java.util.Objects.equals(priority, that.priority) &&
+                java.util.Objects.equals(condition, that.condition) &&
+                java.util.Objects.equals(sourceQuote, that.sourceQuote) &&
+                java.util.Objects.equals(sourceDocument, that.sourceDocument) &&
+                java.util.Objects.equals(onSuccess, that.onSuccess) &&
+                java.util.Objects.equals(onFailure, that.onFailure);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(id, name, description, priority, condition, sourceQuote, sourceDocument, onSuccess, onFailure);
+    }
+
+    @Override
+    public String toString() {
+        return "Rule{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", priority='" + priority + '\'' +
+                ", condition='" + condition + '\'' +
+                ", sourceQuote='" + sourceQuote + '\'' +
+                ", sourceDocument='" + sourceDocument + '\'' +
+                ", onSuccess='" + onSuccess + '\'' +
+                ", onFailure='" + onFailure + '\'' +
+                '}';
+    }
 }

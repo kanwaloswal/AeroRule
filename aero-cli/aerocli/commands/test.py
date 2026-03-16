@@ -6,9 +6,6 @@ from typing import List, Dict, Any
 from rich.console import Console
 from rich.table import Table
 import sys
-
-# Importing from aero-python
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent / "aero-python"))
 from aerorule.models import Rule
 from aerorule.evaluator import RuleEvaluator
 from ..config import load_config

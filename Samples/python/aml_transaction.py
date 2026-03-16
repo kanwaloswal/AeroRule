@@ -1,7 +1,11 @@
+import os
 import json
 from aerorule import aerorule
 
-with open('../rules/AML-TX-001.json', 'r') as f:
+base_dir = os.path.dirname(os.path.abspath(__file__))
+rule_path = os.path.join(base_dir, '../rules/AML-TX-001.json')
+
+with open(rule_path, 'r') as f:
     rule_def = json.load(f)
 
 @aerorule(rule_def)

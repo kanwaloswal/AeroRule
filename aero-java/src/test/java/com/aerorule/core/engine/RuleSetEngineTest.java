@@ -2,7 +2,6 @@ package com.aerorule.core.engine;
 
 import com.aerorule.core.Action;
 import com.aerorule.core.Rule;
-import com.aerorule.core.Trace;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
