@@ -179,6 +179,36 @@ Ensure a customer is verified and their account has existed long enough before g
 ```
 
 
+## Samples
+
+The [`Samples/`](Samples/) directory contains end-to-end examples showing AeroRule in action.
+
+### 🖥️ Policy Generator App (`Samples/policy-generator-app`)
+
+The **AeroRule Policy Generator** is an AI-powered Streamlit web app that converts natural-language policy documents into executable AeroRule JSON rules. It demonstrates the full LLM-to-rule pipeline in a visual, interactive interface.
+
+**How it works:**
+1. **Upload a Policy Document** — provide a plain-text or PDF policy file. The sample uses [`SampleCreditPolicy.txt`](Samples/policy-generator-app/SampleCreditPolicy.txt), which defines a lending policy with clauses such as:
+   - Restricted industries (Gambling, Cannabis) → auto-decline
+   - Commitment vs. Revenue threshold → flag for manual review
+   - Minimum risk score (500) → decline if below
+2. **Upload Domain Objects** — provide your Java POJOs or JSON config files as context so the LLM understands your data model. The sample uses:
+   - [`Customer.java`](Samples/policy-generator-app/Customer.java) — fields: `industry`, `totalRevenue`, `riskScore`
+   - [`Deal.java`](Samples/policy-generator-app/Deal.java) — fields: `totalCommitment`, `status`
+3. **Generate AeroRule JSON** — the app calls an LLM (OpenAI, Anthropic, Gemini, or Ollama) and extracts structured AeroRule rules with full CEL conditions, source quotes, and traceability back to the original document.
+4. **Interactive Review** — click any generated rule to highlight the source text that informed it. Download individual rules or the full rule set.
+
+![AeroRule Policy Generator App](docs/policy-generator-app-screenshot.png)
+
+**To run the sample:**
+```bash
+cd Samples/policy-generator-app
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+---
+
 ## Connecting AeroRule with an LLM
 
 Because AeroRule uses strict JSON schemas and Google's Common Expression Language, you can easily use an LLM (such as OpenAI, Anthropic, Gemini, etc.) to generate or modify your business rules dynamically.
