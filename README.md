@@ -199,6 +199,7 @@ The **AeroRule Policy Generator** is an AI-powered Streamlit web app that conver
 4. **Interactive Review** — click any generated rule to highlight the source text that informed it. Download individual rules or the full rule set.
 
 ![AeroRule Policy Generator App](docs/policy-generator-app-screenshot.png)
+![AeroRule Policy Generator App 2](docs/policy-generator-app-screenshot2.png)
 
 **To run the sample:**
 ```bash
