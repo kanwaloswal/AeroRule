@@ -10,6 +10,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Evaluates all rules in a {@link RuleSet} according to its {@link ExecutionStrategy}.
@@ -24,9 +28,13 @@ import java.util.Map;
  * </pre>
  */
 public class RuleSetEngine {
-
+    private static final Logger logger = LoggerFactory.getLogger(RuleSetEngine.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private final RuleSet ruleSet;
+    
+    // Cache of RuleEvaluators keyed by Rule ID + Version 
+    // This makes RuleSetEngine safe for concurrent reuse
+    private final Map<String, RuleEvaluator> evaluatorCache = new ConcurrentHashMap<>();
 
     public RuleSetEngine(RuleSet ruleSet) {
         this.ruleSet = ruleSet;
@@ -47,19 +55,24 @@ public class RuleSetEngine {
      * @return a {@link RuleSetTrace} with all individual traces and an overall verdict
      */
     public RuleSetTrace evaluate(Map<String, Object> context) {
+        logger.info("Evaluating ruleset [{}] with strategy={}, rules={}", ruleSet.getId(), ruleSet.getExecutionStrategy(), ruleSet.getRules().size());
         long startTime = System.currentTimeMillis();
         List<Trace> traces = new ArrayList<>();
         boolean allPassed = true;
 
         for (Rule rule : ruleSet.getRules()) {
-            RuleEvaluator evaluator = new RuleEvaluator(rule);
+            // Get or create cached evaluator
+            String cacheKey = rule.getId() + "@" + (rule.getVersion() != null ? rule.getVersion() : "latest");
+            RuleEvaluator evaluator = evaluatorCache.computeIfAbsent(cacheKey, k -> new RuleEvaluator(rule));
+
             Trace trace = evaluator.evaluate(context);
             traces.add(trace);
 
             if (!trace.isMatched()) {
                 allPassed = false;
                 if (ruleSet.getExecutionStrategy() == ExecutionStrategy.GATED) {
-                    break; // Stop on first failure
+                    logger.info("GATED strategy: stopping at failed rule [{}]", rule.getId());
+                    break;
                 }
             }
         }
@@ -75,6 +88,15 @@ public class RuleSetEngine {
         result.setExecutionTimeMs(totalTime);
         result.setSummary(passedCount + "/" + traces.size() + " rules passed");
 
+        logger.info("Ruleset [{}] completed: passed={}, summary='{}', time={}ms", ruleSet.getId(), allPassed, result.getSummary(), totalTime);
         return result;
+    }
+
+    /**
+     * Clears the internal RuleEvaluator cache.
+     */
+    public void clearCache() {
+        evaluatorCache.clear();
+        logger.debug("RuleEvaluator cache cleared for ruleset [{}]", ruleSet.getId());
     }
 }

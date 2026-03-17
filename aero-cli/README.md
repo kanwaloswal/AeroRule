@@ -17,9 +17,35 @@
 poetry install
 ```
 
+## Configuration
+
+### Environment Variables (Recommended for CI/Production)
+
+All config values can be set via environment variables. When `AERORULE_PROVIDER` and `AERORULE_MODEL` are both set, **no config file is needed at all** — ideal for containers and CI/CD pipelines.
+
+| Variable | Description | Example |
+|---|---|---|
+| `AERORULE_PROVIDER` | LLM provider | `openai`, `anthropic`, `gemini`, `ollama` |
+| `AERORULE_MODEL` | Model name | `gpt-4o`, `claude-3-5-sonnet-20240620` |
+| `AERORULE_API_KEY` | API key for the provider | `sk-...` |
+| `AERORULE_BASE_URL` | Custom base URL (Ollama, proxies) | `http://localhost:11434` |
+| `AERORULE_RULES_DIR` | Path to rules directory | `./rules` |
+
+**Example: fully environment-driven setup (no `aero init` needed)**
+```bash
+export AERORULE_PROVIDER=openai
+export AERORULE_MODEL=gpt-4o
+export AERORULE_API_KEY=sk-your-key-here
+poetry run aero gen "Flag transactions over $10,000"
+```
+
+**Priority order:** Environment variables always override the config file.
+
+> **⚠ Security Note:** Storing the API key in `~/.aerorule/config` writes it as **plaintext JSON**. This is fine for local development but use environment variables (or a secrets manager) in production and shared environments.
+
 ## Quick Start
 
-Initialize your setup (choose your LLM, provide API keys):
+Initialize your setup (choose your LLM provider and model):
 ```bash
 poetry run aero init
 ```
@@ -32,6 +58,16 @@ poetry run aero gen "Users must be over 18 and reside in Canada"
 Verify the syntax of a rule:
 ```bash
 poetry run aero verify file my-rule.json
+```
+
+Run a ruleset against a context:
+```bash
+poetry run aero run ruleset loan-origination-v1.json --context context.json
+```
+
+Run compliance tests:
+```bash
+poetry run aero test run
 ```
 
 Generate Java models from schema:

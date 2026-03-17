@@ -65,6 +65,24 @@ class TraceTest {
     }
 
     @Test
+    void setAndGetInputs() {
+        Trace trace = new Trace();
+        java.util.Map<String, Object> inputs = new java.util.HashMap<>();
+        inputs.put("amount", 500);
+        trace.setInputs(inputs);
+        assertEquals(500, trace.getInputs().get("amount"));
+    }
+
+    @Test
+    void setAndGetEvaluatedExpressions() {
+        Trace trace = new Trace();
+        java.util.Map<String, Object> evals = new java.util.HashMap<>();
+        evals.put("amount > 100", true);
+        trace.setEvaluatedExpressions(evals);
+        assertEquals(true, trace.getEvaluatedExpressions().get("amount > 100"));
+    }
+
+    @Test
     void fullTraceForComplianceAudit() {
         Trace trace = new Trace();
         trace.setRuleId("AML-TX-001");

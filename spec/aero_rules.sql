@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS aero_rules (
     id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255),
+    version VARCHAR(50),
     description TEXT,
     priority INT,
     condition TEXT NOT NULL,

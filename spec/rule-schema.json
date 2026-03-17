@@ -11,6 +11,10 @@
       "type": "string",
       "description": "Short, human-readable name of the rule"
     },
+    "version": {
+      "type": "string",
+      "description": "Optional version string for the rule (e.g. '1.0.0')."
+    },
     "description": {
       "type": "string",
       "description": "Human-readable description of the rule"

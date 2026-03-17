@@ -11,6 +11,9 @@ import dev.cel.runtime.CelEvaluationException;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -21,6 +24,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
  * Thread-safe for evaluation, but recompiles CEL dynamically if not pre-compiled.
  */
 public class RuleEvaluator {
+    private static final Logger logger = LoggerFactory.getLogger(RuleEvaluator.class);
     private final Rule rule;
     private CelRuntime.Program program;
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -30,6 +34,7 @@ public class RuleEvaluator {
     }
 
     public void compile(Map<String, Object> contextDefinition) throws CelValidationException, CelEvaluationException {
+        logger.debug("Compiling CEL expression for rule [{}]: {}", rule.getId(), rule.getCondition());
         dev.cel.compiler.CelCompilerBuilder compilerBuilder = CelCompilerFactory.standardCelCompilerBuilder();
         for (String key : contextDefinition.keySet()) {
             compilerBuilder.addVar(key, SimpleType.DYN);
@@ -40,15 +45,29 @@ public class RuleEvaluator {
         
         CelRuntime runtime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
         this.program = runtime.createProgram(ast);
+        logger.debug("Successfully compiled rule [{}]", rule.getId());
     }
 
 
 
     public Trace evaluate(Map<String, Object> context) {
+        logger.debug("Evaluating rule [{}] with context keys: {}", rule.getId(), context.keySet());
         long startTime = System.currentTimeMillis();
         Trace trace = new Trace();
-        trace.setRuleId(rule.getId());
-        trace.setCondition(rule.getCondition());
+        trace.setRuleId(rule.getId() != null ? rule.getId() : "<unknown>");
+        trace.setCondition(rule.getCondition() != null ? rule.getCondition() : "");
+        trace.setInputs(context);
+        trace.setEvaluatedExpressions(new java.util.HashMap<>());
+
+        try {
+            rule.validate();
+        } catch (IllegalStateException e) {
+            trace.setMatched(false);
+            trace.setEvaluationError(e.getMessage());
+            logger.error(e.getMessage());
+            trace.setExecutionTimeMs(System.currentTimeMillis() - startTime);
+            return trace;
+        }
 
         try {
             if (this.program == null) {
@@ -64,16 +83,20 @@ public class RuleEvaluator {
                 if (action != null) {
                     trace.setActionTaken(action.getAction());
                 }
+                logger.debug("Rule [{}] evaluated: matched={}, action={}", rule.getId(), matched, trace.getActionTaken());
             } else {
                 trace.setMatched(false);
                 trace.setEvaluationError("Condition did not evaluate to a boolean: " + result);
+                logger.warn("Rule [{}] condition returned non-boolean: {}", rule.getId(), result);
             }
         } catch (Exception e) {
             trace.setMatched(false);
             trace.setEvaluationError(e.getMessage());
+            logger.error("Rule [{}] evaluation failed: {}", rule.getId(), e.getMessage(), e);
         }
 
         trace.setExecutionTimeMs(System.currentTimeMillis() - startTime);
+        logger.debug("Rule [{}] completed in {}ms", rule.getId(), trace.getExecutionTimeMs());
         return trace;
     }
 

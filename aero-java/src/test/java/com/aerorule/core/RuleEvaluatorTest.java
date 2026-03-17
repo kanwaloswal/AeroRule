@@ -400,19 +400,15 @@ class RuleEvaluatorTest {
         }
 
         @Test
-        @DisplayName("No action when onSuccess/onFailure are null")
-        void noActionWhenActionsNull() {
+        @DisplayName("Validation fails when onSuccess/onFailure are null")
+        void failsWhenActionsNull() {
             Rule rule = makeRule("NOACT-001", "val > 0", null, null);
             RuleEvaluator eval = new RuleEvaluator(rule);
 
             Trace t1 = eval.evaluate(ctx("val", 10));
-            assertTrue(t1.isMatched());
-            assertNull(t1.getActionTaken());
-
-            RuleEvaluator eval2 = new RuleEvaluator(rule);
-            Trace t2 = eval2.evaluate(ctx("val", -1));
-            assertFalse(t2.isMatched());
-            assertNull(t2.getActionTaken());
+            assertFalse(t1.isMatched());
+            assertNotNull(t1.getEvaluationError());
+            assertTrue(t1.getEvaluationError().contains("at least one of 'onSuccess' or 'onFailure' must be defined"));
         }
 
         @Test
