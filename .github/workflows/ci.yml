@@ -34,4 +34,5 @@ jobs:
       run: |
         cd aero-python
         poetry install
+        poetry run pip install pytest
         poetry run pytest
