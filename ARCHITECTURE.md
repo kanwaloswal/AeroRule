@@ -1,154 +1,55 @@
-## System Architecture
+# AeroRule — Architecture
 
-AeroRule is built on a polyglot design supporting Java and Python with identical execution semantics.
+AeroRule is a polyglot rules engine (Java + Python) that evaluates JSON-defined business rules using Google's Common Expression Language (CEL). This document gives a compact, easy-to-read architecture overview suitable for the project docs.
 
-╔════════════════════════════�═══════════════════════════════════════════════════╗
-║                         AERORULE SYSTEM ARCHITECTURE                           ║
-║              A Polyglot Rules Engine for LLM Integration                       ║
-╚════════════════════════════════════════════════════════════════════════════════╝
+## High-level diagram
 
-┌─ USER INTERFACE & TOOLS ──────────────────────────────────────────────────────┐
-│                                                                               │
-│  ┌──────────────────────┐    ┌──────────────────────┐   ┌─────────────────┐   │
-│  │   CLI Tools          │    │  Python Decorator    │   │  LLM Integration│   │
-│  │  (aero-cli)          │    │  (@aerorule)         │   │  (OpenAI, etc)  │   │
-│  ├──────────────────────┤    ├──────────────────────┤   ├─────────────────┤   │
-│  │ • aero init          │    │ @aerorule(rule_def)  │   │ • Generate CEL  │   │
-│  │ • aero gen           │    │ def process_data()   │   │ • Validate JSON │   │
-│  │ • aero verify        │    │    ...               │   │ • Config Mgmt   │   │
-│  │ • aero run           │    │ Automatic rule eval  │   │ • Code Gen      │   │
-│  │ • aero test          │    │ on function call     │   │                 │   │
-│  │ • aero models        │    │                      │   │                 │   │
-│  └──────────────────────┘    └──────────────────────┘   └─────────────────┘   │
-│                                                                               │
-└───────────────────────────────────────────────────────────────────────────────┘
+Simple flow (text) to render cleanly on GitHub:
 
-┌─ CORE EVALUATION ENGINE ──────────────────────────────────────────────────────┐
-│                                                                               │
-│  Single Rule Flow              RuleSet Flow                                   │
-│  ──────────────────────        ─────────────                                  │
-│                                                                               │
-│  Rule JSON/YAML                RuleSet Definition                             │
-│       ↓                              ↓                                        │
-│  RuleEvaluator                 RuleSetEngine                                  │
-│  ├─ Compile CEL               ├─ Group Rules                                  │
-│  ├─ Bind Context              ├─ Apply Strategy:                              │
-│  ├─ Evaluate                  │  • ALL (evaluate all)                         │
-│  └─ Return Trace              │  • GATED (stop on fail)                       │
-│                                └─ Aggregate Results                           │
-│  ↓                                  ↓                                         │
-│  Trace {                       RuleSetTrace {                                 │
-│   ruleId                        ruleSetId                                     │
-│   condition                     strategy: "ALL"|"GATED"                       │
-│   matched: bool                 passed: bool                                  │
-│   actionTaken                   traces: [Trace]                               │
-│   executionTimeMs               summary: "3/5 rules passed"                   │
-│   evaluationError               executionTimeMs                               │
-│  }                              }                                             │
-│                                                                               │
-└───────────────────────────────────────────────────────────────────────────────┘
+```
+User / CLI / LLM
+     ↓
+[aero-cli]  [@aerorule decorator]
+     ↓          ↓
+    Management  Invocation
+       └─────────┬─────────┘
+                 ↓
+           Core Evaluation Engine
+    ┌─────────────────────────────────┐
+    │ • RuleEvaluator (single rule)   │
+    │ • RuleSetEngine (grouped rules) │
+    │ • FileSystemProvider (rules)    │
+    │ • CEL runtime (dev.cel / celpy) │
+    └─────────────────────────────────┘
+                 ↓
+            Outputs: Trace, Action
+```
 
-┌─ CEL RUNTIME (Expression Evaluator) ──────────────────────────────────────────┐
-│                                                                               │
-│  • Google CEL - Safe, non-Turing complete expression language                 │
-│  • Fast condition evaluation on context data                                  │
-│  • Type-safe variable binding                                                 │
-│  • Java: dev.cel.* | Python: celpy                                            │
-│                                                                               │
-└───────────────────────────────────────────────────────────────────────────────┘
+## Components (short)
 
-┌─ POLYGLOT IMPLEMENTATIONS ────────────────────────────────────────────────────┐
-│                                                                               │
-│  ┌─────────────────────────────┐  ┌────────────────────────────────────────┐  │
-│  │ JAVA (aero-java)            │  │ PYTHON (aero-python)                   │  │
-│  ├─────────────────────────────┤  ├────────────────────────────────────────┤  │
-│  │ • Language: Java 21+        │  │ • Language: Python 3.10+               │  │
-│  │ • Build: Maven              │  │ • Package: Poetry                      │  │
-│  │ • Location: src/main/java   │  │ • Location: aerorule/                  │  │
-│  │ • Classes:                  │  │ • Modules:                             │  │
-│  │   - Rule, Trace, Action     │  │   - RuleEvaluator, RuleSetEngine       │  │
-│  │   - RuleEvaluator           │  │   - TraceModel (Pydantic), decorators  │  │
-│  │   - RuleSetEngine           │  │                                        │  │
-│  │   - FileSystemProvider      │  │ • CEL Binding: celpy                   │  │
-│  │ • CEL Binding: google-cel   │  │ • Cache: dict[str, RuleEvaluator]      │  │
-│  │ • Cache: ConcurrentHashMap  │  │                                        │  │
-│  │ • JSON: Jackson ObjectMapper │  │                                       │  │
-│  └─────────────────────────────┘  └────────────────────────────────────────┘  │
-│                                                                               │
-│  ✓ Identical JSON rule format  ✓ Same execution semantics  ✓ Cross-lang       │
-│                                                                               │
-└───────────────────────────────────────────────────────────────────────────────┘
+- **aero-cli (Python)**: CLI for generating, validating, testing and running rules; integrates with LLMs to generate CEL/JSON and for model-driven code generation.
+- **Python decorator (@aerorule)**: Evaluate rules automatically around function calls in application code.
+- **aero-java**: Java core for JVM apps (Rule, RuleEvaluator, RuleSetEngine, FileSystemProvider).
+- **aero-python**: Python runtime (RuleEvaluator, RuleSetEngine, decorator, Pydantic models).
+- **CEL runtime**: dev.cel (Java) and celpy (Python) for safe expression evaluation.
+- **FileSystemProvider**: Loads JSON/YAML rules from disk and caches them.
+- **Trace / RuleSetTrace**: Auditable evaluation results (matched, evaluationError, executionTimeMs, actionTaken, inputs).
 
-┌─ STORAGE & CONFIGURATION ─────────────────────────────────────────────────────┐
-│                                                                               │
-│  Rule Files (JSON/YAML)        RuleSet Definition      JSON Schemas           │
-│  ├─ rule id                    ├─ id                   ├─ Entities            │
-│  ├─ description                ├─ name                 ├─ Data models         │
-│  ├─ condition (CEL)            ├─ executionStrategy    ├─ Validations         │
-│  ├─ onSuccess action           ├─ rules: [Rule]        └─ Code generation     │
-│  └─ onFailure action           └─ metadata             (POJOs, Pydantic)      │
-│                                                                               │
-│  FileSystemProvider Caching                                                   │
-│  ├─ Load from directory        ├─ On-demand compilation ├─ Refresh support    │
-│                                                                               │
-└───────────────────────────────────────────────────────────────────────────────┘
+## Execution strategies
 
-┌─ DATA FLOW EXAMPLE ──────────────────────────────────────────────��────────────┐
-│                                                                                │
-│  1. Load Rules                                                                 │
-│     rules/ ──→ FileSystemProvider ──→ Rule[]                                   │
-│                                                                                │
-│  2. Prepare Context                                                            │
-│     {user: {age: 25}, ...} ──→ Type binding via CEL                            │
-│                                                                                │
-│  3. Evaluate                                                                   │
-│     Rule + Context ──→ RuleEvaluator ──→ CEL eval ──→ matched: bool            │
-│                                                                                │
-│  4. Execute Action                                                             │
-│     matched=true ──→ onSuccess action ──→ ALLOW / APPROVE / etc.               │
-│                                                                                │
-│  5. Return Trace                                                               │
-│     Trace{ ruleId, condition, matched, actionTaken, executionTimeMs }          │
-│                                                                                │
-└────────────────────────────────────────────────────────────────────────────────┘
+- **ALL** — Evaluate every rule and collect all traces (audit / reporting).
+- **GATED** — Evaluate rules in order and stop at the first failure (approval/gating workflows).
 
-┌─ EXECUTION STRATEGIES ────────────────────────────────────────────────────────┐
-│                                                                               │
-│  ALL Strategy                          GATED Strategy                         │
-│  ─────────────                         ──────────────                         │
-│  • Evaluate ALL rules                  • Evaluate rules in order              │
-│  • Collect all traces                  • STOP on first failure                │
-│  • Return aggregate result             • Return partial traces                │
-│  • Use Case: Audit, reporting          • Use Case: Approval gates             │
-│                                                                               │
-└───────────────────────────────────────────────────────────────────────────────┘
+## Typical data flow
 
-┌─ SAMPLES & DOCUMENTATION ─────────────────────────────────────────────────────┐
-│                                                                               │
-│  /Samples/java/     → LoanOriginationSample, AmlTransactionSample             │
-│  /Samples/python/   → loan_origination.py, aml_transaction.py                 │
-│  /Samples/rules/    → JSON rule definitions (CREDIT-001, AML-TX-001)          │
-│  /docs/             → Technical documentation                                 │
-│  /spec/             → JSON Schema definitions                                 │
-│                                                                               │
-└───────────────────────────────────────────────────────────────────────────────┘
+1. Rules authored as JSON/YAML (CEL condition + onSuccess/onFailure actions).  
+2. Rules loaded by FileSystemProvider (or another provider).  
+3. Context (dict/POJO) passed to RuleEvaluator or to RuleSetEngine.  
+4. CEL expression is compiled (JIT or precompiled) and evaluated against the context.  
+5. RuleEvaluator returns a Trace. RuleSetEngine aggregates traces and produces a RuleSetTrace.
 
-KEY DESIGN PRINCIPLES
-═════════════════════════════════════════════════════════════════════════════════
+## Polyglot & LLM notes
 
-🔒 SECURITY          • CEL is non-Turing complete → prevents infinite loops
-                     • No raw code execution → prevents injection attacks
+- Rules are JSON-first and language-agnostic; the same rule yields equivalent results in Java and Python.
+- Using CEL (instead of raw code) makes LLM-generated policies safer to execute in production.
 
-🌍 POLYGLOT          • JSON rule format → language-agnostic
-                     • Identical CEL semantics → same behavior in Java & Python
-
-🤖 LLM-NATIVE        • JSON + CEL → LLMs excel at generating these
-                     • Safe to execute → no code review risks
-
-⚡ PERFORMANCE       • CEL runtime is extremely fast
-                     • Provider caching → minimal file I/O
-                     • Concurrent-safe → scales horizontally
-
-📊 OBSERVABLE        • Full execution tracing → audit compliance
-                     • Metrics included → timing & decision tracking
-                     
