@@ -4,8 +4,6 @@ AeroRule is a polyglot rules engine (Java + Python) that evaluates JSON-defined 
 
 ## High-level diagram
 
-Simple flow (text) to render cleanly on GitHub:
-
 ```
 User / CLI / LLM
      ↓
