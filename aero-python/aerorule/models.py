@@ -8,6 +8,7 @@ class Action(BaseModel):
     """
     action: str
     metadata: Optional[Dict[str, Any]] = None
+    next: Optional[str] = None
 
 class Rule(BaseModel):
     """
@@ -59,7 +60,7 @@ class RuleSet(BaseModel):
     id: str
     name: Optional[str] = None
     description: Optional[str] = None
-    executionStrategy: Literal["ALL", "GATED"] = "ALL"
+    executionStrategy: Literal["ALL", "FIRST_MATCH", "PRIORITY_ORDERED", "GATED", "FLOW"] = "ALL"
     rules: List[Rule]
 
 class RuleSetTrace(BaseModel):

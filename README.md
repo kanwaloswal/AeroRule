@@ -79,22 +79,45 @@ While individual rules are useful, real-world policies involve **multiple rules 
 | Strategy | Behavior | Use Case |
 |----------|----------|----------|
 | `ALL` | Run every rule, collect all traces. | Audit / compliance reporting. |
+| `FIRST_MATCH` | Run in order, stop at first rule that **matches**. | Routing / classification. |
+| `PRIORITY_ORDERED` | Sort by `priority` (desc), run all. | Weighted rule evaluation. |
 | `GATED` | Run in order, **stop on first failure**. | Sequential approval gates. |
+| `FLOW` | Follow `next` pointers from rule to rule based on pass/fail. | Decision trees / flowcharts. |
 
-### Example RuleSet (`GATED` Strategy)
+### Example RuleSet (`FLOW` Strategy)
+
+The `FLOW` strategy is AeroRule's flagship enterprise feature, allowing you to chain rules together into complex decision trees. By setting the `next` property on a rule's `onSuccess` or `onFailure` actions, you can control the exact execution path.
 
 ```json
 {
-  "id": "loan-origination-v1",
-  "name": "Loan Origination Policy",
-  "executionStrategy": "GATED",
+  "id": "loan-decision-flow",
+  "name": "Loan Decision Flow",
+  "executionStrategy": "FLOW",
   "rules": [
-    { "id": "CREDIT-001", "condition": "customer.creditScore >= 680",
-      "onSuccess": { "action": "PASS" }, "onFailure": { "action": "DECLINE" } },
-    { "id": "INCOME-001", "condition": "customer.annualIncome >= 40000",
-      "onSuccess": { "action": "PASS" }, "onFailure": { "action": "DECLINE" } },
-    { "id": "LTV-001", "condition": "loan.amount <= customer.annualIncome * 5",
-      "onSuccess": { "action": "APPROVE_LOAN" }, "onFailure": { "action": "FLAG_FOR_REVIEW" } }
+    {
+      "id": "CREDIT-CHECK",
+      "condition": "customer.creditScore >= 680",
+      "onSuccess": { "action": "PASS", "next": "INCOME-CHECK" },
+      "onFailure": { "action": "DECLINE" }
+    },
+    {
+      "id": "INCOME-CHECK",
+      "condition": "customer.annualIncome >= 40000",
+      "onSuccess": { "action": "PASS", "next": "LTV-CHECK" },
+      "onFailure": { "action": "FLAG_REVIEW", "next": "MANUAL-REVIEW" }
+    },
+    {
+      "id": "LTV-CHECK",
+      "condition": "loan.amount <= customer.annualIncome * 5",
+      "onSuccess": { "action": "APPROVE_LOAN" },
+      "onFailure": { "action": "FLAG_FOR_REVIEW" }
+    },
+    {
+      "id": "MANUAL-REVIEW",
+      "condition": "customer.yearsEmployed >= 3",
+      "onSuccess": { "action": "CONDITIONAL_APPROVE" },
+      "onFailure": { "action": "DECLINE" }
+    }
   ]
 }
 ```
@@ -104,15 +127,15 @@ While individual rules are useful, real-world policies involve **multiple rules 
 ```python
 from aerorule import RuleSetEngine
 
-engine = RuleSetEngine.from_file("rules/loan-origination-v1.json")
+engine = RuleSetEngine.from_file("rules/loan-decision-flow.json")
 result = engine.evaluate({
-    "customer": {"creditScore": 720, "annualIncome": 85000},
-    "loan": {"amount": 250000}
+    "customer": {"creditScore": 720, "annualIncome": 50000, "yearsEmployed": 4},
+    "loan": {"amount": 200000}
 })
 
 print(result.passed)       # True
 print(result.summary)      # "3/3 rules passed"
-print(len(result.traces))  # 3 individual Trace objects
+print(len(result.traces))  # 3 individual Trace objects (Credit -> Income -> LTV)
 ```
 
 *See a full runnable example in [`Samples/python/run_ruleset.py`](AeroRule/Samples/python/run_ruleset.py).*
@@ -122,10 +145,10 @@ print(len(result.traces))  # 3 individual Trace objects
 ```java
 import com.aerorule.core.engine.*;
 
-RuleSetEngine engine = RuleSetEngine.fromFile("rules/loan-origination-v1.json");
+RuleSetEngine engine = RuleSetEngine.fromFile("rules/loan-decision-flow.json");
 RuleSetTrace result = engine.evaluate(Map.of(
-    "customer", Map.of("creditScore", 720, "annualIncome", 85000),
-    "loan", Map.of("amount", 250000)
+    "customer", Map.of("creditScore", 720, "annualIncome", 50000, "yearsEmployed", 4),
+    "loan", Map.of("amount", 200000)
 ));
 
 System.out.println(result.isPassed());   // true
@@ -134,8 +157,16 @@ System.out.println(result.getSummary()); // "3/3 rules passed"
 
 ### CLI Usage
 
+AeroRule provides powerful CLI tools to run and visualize your rulesets. 
+
+To evaluate a ruleset against a context:
 ```bash
-aero run ruleset loan-origination-v1.json --context context.json
+aero run ruleset loan-decision-flow.json --context context.json
+```
+
+To visually inspect a ruleset and its flowchart without executing it:
+```bash
+aero show ruleset loan-decision-flow.json
 ```
 
 ## Financial Services Use Cases

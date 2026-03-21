@@ -91,7 +91,7 @@ class TestGatedStrategy:
         assert len(result.traces) == 2  # R3 not evaluated
         assert result.traces[0].matched is True
         assert result.traces[1].matched is False
-        assert result.summary == "1/2 rules passed"
+        assert result.summary == "1/3 rules passed"
 
     def test_first_rule_fails_stops_immediately(self):
         rs = RuleSet(**make_ruleset("GATED"))
@@ -100,7 +100,152 @@ class TestGatedStrategy:
 
         assert result.passed is False
         assert len(result.traces) == 1  # Only R1 evaluated
-        assert result.summary == "0/1 rules passed"
+        assert result.summary == "0/3 rules passed"
+
+
+# ── FIRST_MATCH strategy ─────────────────────────────────────────────
+
+class TestFirstMatchStrategy:
+
+    def test_stops_on_first_match(self):
+        rs = RuleSet(**make_ruleset("FIRST_MATCH"))
+        engine = RuleSetEngine(rs)
+        result = engine.evaluate({"score": 750, "income": 80000, "debt": 5000})
+
+        assert result.passed is True
+        assert len(result.traces) == 1
+        assert result.traces[0].actionTaken == "PASS"
+
+    def test_tries_until_match(self):
+        rs = RuleSet(**make_ruleset("FIRST_MATCH"))
+        engine = RuleSetEngine(rs)
+        result = engine.evaluate({"score": 500, "income": 30000, "debt": 5000})
+
+        assert result.passed is True
+        assert len(result.traces) == 3
+        assert result.traces[0].matched is False
+        assert result.traces[1].matched is False
+        assert result.traces[2].matched is True
+
+    def test_none_match_returns_false(self):
+        rs = RuleSet(**make_ruleset("FIRST_MATCH"))
+        engine = RuleSetEngine(rs)
+        result = engine.evaluate({"score": 500, "income": 30000, "debt": 50000})
+
+        assert result.passed is False
+        assert len(result.traces) == 3
+
+
+# ── PRIORITY_ORDERED strategy ──────────────────────────────────────────
+
+class TestPriorityOrderedStrategy:
+
+    def test_sorts_descending(self):
+        data = make_ruleset("PRIORITY_ORDERED")
+        data["rules"][0]["priority"] = 10 # R1
+        data["rules"][1]["priority"] = 50 # R2
+        data["rules"][2]["priority"] = 30 # R3
+        
+        rs = RuleSet(**data)
+        engine = RuleSetEngine(rs)
+        result = engine.evaluate({"score": 750, "income": 80000, "debt": 5000})
+
+        assert result.passed is True
+        assert len(result.traces) == 3
+        assert result.traces[0].ruleId == "R2"
+        assert result.traces[1].ruleId == "R3"
+        assert result.traces[2].ruleId == "R1"
+
+    def test_all_evaluated_even_on_failure(self):
+        rs = RuleSet(**make_ruleset("PRIORITY_ORDERED"))
+        engine = RuleSetEngine(rs)
+        result = engine.evaluate({"score": 600, "income": 80000, "debt": 5000})
+
+        assert result.passed is False
+        assert len(result.traces) == 3
+
+    def test_null_priority_is_zero(self):
+        data = make_ruleset("PRIORITY_ORDERED")
+        data["rules"][0]["priority"] = 10     # R1
+        # R2 priority left out (defaults to None -> 0)
+        data["rules"][2]["priority"] = -5     # R3
+        
+        rs = RuleSet(**data)
+        engine = RuleSetEngine(rs)
+        result = engine.evaluate({"score": 750, "income": 80000, "debt": 5000})
+
+        assert len(result.traces) == 3
+        assert result.traces[0].ruleId == "R1"
+        assert result.traces[1].ruleId == "R2"
+        assert result.traces[2].ruleId == "R3"
+
+
+# ── FLOW strategy ────────────────────────────────────────────────────
+
+def make_flow_ruleset():
+    return {
+        "id": "flow",
+        "executionStrategy": "FLOW",
+        "rules": [
+            {
+                "id": "R1", "condition": "x > 0",
+                "onSuccess": {"action": "P1", "next": "R2"},
+                "onFailure": {"action": "F1", "next": "R3"}
+            },
+            {
+                "id": "R2", "condition": "y > 0",
+                "onSuccess": {"action": "P2"},
+                "onFailure": {"action": "F2", "next": "R3"}
+            },
+            {
+                "id": "R3", "condition": "z > 0",
+                "onSuccess": {"action": "P3"},
+                "onFailure": {"action": "F3"}
+            }
+        ]
+    }
+
+class TestFlowStrategy:
+
+    def test_follows_success_chain(self):
+        rs = RuleSet(**make_flow_ruleset())
+        engine = RuleSetEngine(rs)
+        result = engine.evaluate({"x": 1, "y": 1, "z": 1})
+
+        assert result.passed is True
+        assert len(result.traces) == 2
+        assert result.traces[0].ruleId == "R1"
+        assert result.traces[1].ruleId == "R2"
+        assert result.traces[1].actionTaken == "P2"
+
+    def test_branches_on_failure(self):
+        rs = RuleSet(**make_flow_ruleset())
+        engine = RuleSetEngine(rs)
+        result = engine.evaluate({"x": -1, "y": 1, "z": 1})
+
+        assert result.passed is True
+        assert len(result.traces) == 2
+        assert result.traces[0].ruleId == "R1"
+        assert result.traces[1].ruleId == "R3"
+        assert result.traces[1].actionTaken == "P3"
+
+    def test_cycle_detection_throws(self):
+        data = make_flow_ruleset()
+        data["rules"][2]["onSuccess"]["next"] = "R1"
+        rs = RuleSet(**data)
+        engine = RuleSetEngine(rs)
+
+        with pytest.raises(RuntimeError, match="cycle detected"):
+            engine.evaluate({"x": -1, "y": 1, "z": 1})
+
+    def test_missing_next_throws(self):
+        data = make_flow_ruleset()
+        data["rules"][0]["onSuccess"]["next"] = "MISSING"
+        rs = RuleSet(**data)
+        engine = RuleSetEngine(rs)
+
+        with pytest.raises(RuntimeError, match="missing rule"):
+            engine.evaluate({"x": 1, "y": 1, "z": 1})
 
 
 # ── from_file ────────────────────────────────────────────────────────

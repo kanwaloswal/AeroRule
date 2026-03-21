@@ -1,0 +1,31 @@
+{
+  "id": "loan-decision-flow",
+  "name": "Loan Decision Flow",
+  "executionStrategy": "FLOW",
+  "rules": [
+    {
+      "id": "CREDIT-CHECK",
+      "condition": "customer.creditScore >= 680",
+      "onSuccess": { "action": "PASS", "next": "INCOME-CHECK" },
+      "onFailure": { "action": "DECLINE" }
+    },
+    {
+      "id": "INCOME-CHECK",
+      "condition": "customer.annualIncome >= 40000",
+      "onSuccess": { "action": "PASS", "next": "LTV-CHECK" },
+      "onFailure": { "action": "FLAG_REVIEW", "next": "MANUAL-REVIEW" }
+    },
+    {
+      "id": "LTV-CHECK",
+      "condition": "loan.amount <= customer.annualIncome * 5",
+      "onSuccess": { "action": "APPROVE_LOAN" },
+      "onFailure": { "action": "FLAG_FOR_REVIEW" }
+    },
+    {
+      "id": "MANUAL-REVIEW",
+      "condition": "customer.yearsEmployed >= 3",
+      "onSuccess": { "action": "CONDITIONAL_APPROVE" },
+      "onFailure": { "action": "DECLINE" }
+    }
+  ]
+}

@@ -4,7 +4,23 @@ This package provides the Python runtime for AeroRule, allowing you to load JSON
 
 ## Installation
 
-Using Poetry (from the project root if managing locally):
+### Using pip (Virtual Environment)
+
+For a standard `venv`, you can install in one shot using:
+
+```bash
+pip install -e ".[dev]"
+```
+
+> [!NOTE]
+> **macOS Users:** If you encounter a build error for `google-re2`, you can install the precompiled binary first:
+> ```bash
+> python3 -m pip install google-re2 --only-binary=:all:
+> ```
+
+### Using Poetry
+
+From the project root:
 ```bash
 poetry install
 ```
