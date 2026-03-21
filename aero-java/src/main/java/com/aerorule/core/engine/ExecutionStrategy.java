@@ -10,5 +10,8 @@ package com.aerorule.core.engine;
  */
 public enum ExecutionStrategy {
     ALL,
-    GATED
+    FIRST_MATCH,
+    PRIORITY_ORDERED,
+    GATED,
+    FLOW
 }

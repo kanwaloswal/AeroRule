@@ -8,9 +8,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,21 +64,22 @@ public class RuleSetEngine {
         List<Trace> traces = new ArrayList<>();
         boolean allPassed = true;
 
-        for (Rule rule : ruleSet.getRules()) {
-            // Get or create cached evaluator
-            String cacheKey = rule.getId() + "@" + (rule.getVersion() != null ? rule.getVersion() : "latest");
-            RuleEvaluator evaluator = evaluatorCache.computeIfAbsent(cacheKey, k -> new RuleEvaluator(rule));
-
-            Trace trace = evaluator.evaluate(context);
-            traces.add(trace);
-
-            if (!trace.isMatched()) {
-                allPassed = false;
-                if (ruleSet.getExecutionStrategy() == ExecutionStrategy.GATED) {
-                    logger.info("GATED strategy: stopping at failed rule [{}]", rule.getId());
-                    break;
-                }
-            }
+        switch (ruleSet.getExecutionStrategy()) {
+            case ALL:
+                allPassed = evaluateAll(context, traces);
+                break;
+            case FIRST_MATCH:
+                allPassed = evaluateFirstMatch(context, traces);
+                break;
+            case PRIORITY_ORDERED:
+                allPassed = evaluatePriorityOrdered(context, traces);
+                break;
+            case GATED:
+                allPassed = evaluateGated(context, traces);
+                break;
+            case FLOW:
+                allPassed = evaluateFlow(context, traces);
+                break;
         }
 
         long totalTime = System.currentTimeMillis() - startTime;
@@ -86,10 +91,110 @@ public class RuleSetEngine {
         result.setStrategy(ruleSet.getExecutionStrategy().name());
         result.setTraces(traces);
         result.setExecutionTimeMs(totalTime);
-        result.setSummary(passedCount + "/" + traces.size() + " rules passed");
+        result.setSummary(passedCount + "/" + Math.max(traces.size(), ruleSet.getRules().size()) + " rules passed");
 
         logger.info("Ruleset [{}] completed: passed={}, summary='{}', time={}ms", ruleSet.getId(), allPassed, result.getSummary(), totalTime);
         return result;
+    }
+
+    private Trace evaluateRule(Rule rule, Map<String, Object> context) {
+        String cacheKey = rule.getId() + "@" + (rule.getVersion() != null ? rule.getVersion() : "latest");
+        RuleEvaluator evaluator = evaluatorCache.computeIfAbsent(cacheKey, k -> new RuleEvaluator(rule));
+        return evaluator.evaluate(context);
+    }
+
+    private boolean evaluateAll(Map<String, Object> context, List<Trace> traces) {
+        boolean allPassed = true;
+        for (Rule rule : ruleSet.getRules()) {
+            Trace trace = evaluateRule(rule, context);
+            traces.add(trace);
+            if (!trace.isMatched()) {
+                allPassed = false;
+            }
+        }
+        return allPassed;
+    }
+
+    private boolean evaluateFirstMatch(Map<String, Object> context, List<Trace> traces) {
+        for (Rule rule : ruleSet.getRules()) {
+            Trace trace = evaluateRule(rule, context);
+            traces.add(trace);
+            if (trace.isMatched()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean evaluatePriorityOrdered(Map<String, Object> context, List<Trace> traces) {
+        List<Rule> sortedRules = new ArrayList<>(ruleSet.getRules());
+        sortedRules.sort((r1, r2) -> {
+            int p1 = r1.getPriority() != null ? r1.getPriority() : 0;
+            int p2 = r2.getPriority() != null ? r2.getPriority() : 0;
+            return Integer.compare(p2, p1); // descending
+        });
+
+        boolean allPassed = true;
+        for (Rule rule : sortedRules) {
+            Trace trace = evaluateRule(rule, context);
+            traces.add(trace);
+            if (!trace.isMatched()) {
+                allPassed = false;
+            }
+        }
+        return allPassed;
+    }
+
+    private boolean evaluateGated(Map<String, Object> context, List<Trace> traces) {
+        for (Rule rule : ruleSet.getRules()) {
+            Trace trace = evaluateRule(rule, context);
+            traces.add(trace);
+            if (!trace.isMatched()) {
+                logger.info("GATED strategy: stopping at failed rule [{}]", rule.getId());
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean evaluateFlow(Map<String, Object> context, List<Trace> traces) {
+        if (ruleSet.getRules().isEmpty()) {
+            return true;
+        }
+
+        Map<String, Rule> ruleMap = ruleSet.getRules().stream()
+                .collect(Collectors.toMap(Rule::getId, Function.identity()));
+
+        Set<String> visited = new HashSet<>();
+        Rule currentRule = ruleSet.getRules().get(0);
+        boolean lastMatch = false;
+
+        while (currentRule != null) {
+            if (!visited.add(currentRule.getId())) {
+                throw new IllegalStateException("FLOW strategy cycle detected: Rule [" + currentRule.getId() + "] was visited multiple times.");
+            }
+
+            Trace trace = evaluateRule(currentRule, context);
+            traces.add(trace);
+            lastMatch = trace.isMatched();
+
+            String nextRuleId;
+            if (lastMatch) {
+                nextRuleId = currentRule.getOnSuccess() != null ? currentRule.getOnSuccess().getNext() : null;
+            } else {
+                nextRuleId = currentRule.getOnFailure() != null ? currentRule.getOnFailure().getNext() : null;
+            }
+
+            if (nextRuleId == null) {
+                break; // Terminal node
+            }
+
+            currentRule = ruleMap.get(nextRuleId);
+            if (currentRule == null) {
+                throw new IllegalStateException("FLOW strategy missing rule: 'next' pointer specifies [" + nextRuleId + "] but it does not exist in the RuleSet.");
+            }
+        }
+        return lastMatch;
     }
 
     /**

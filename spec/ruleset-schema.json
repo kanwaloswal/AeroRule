@@ -18,9 +18,9 @@
     },
     "executionStrategy": {
       "type": "string",
-      "enum": ["ALL", "GATED"],
+      "enum": ["ALL", "FIRST_MATCH", "PRIORITY_ORDERED", "GATED", "FLOW"],
       "default": "ALL",
-      "description": "ALL = evaluate every rule and collect all traces. GATED = evaluate in order and stop on first failure."
+      "description": "ALL = evaluate every rule. FIRST_MATCH = stop at first match. PRIORITY_ORDERED = sort by priority descending, run all. GATED = stop on first failure. FLOW = branch by following next pointers."
     },
     "rules": {
       "type": "array",

@@ -40,7 +40,8 @@
       "description": "Action to take when condition evaluates to true",
       "properties": {
         "action": {"type": "string"},
-        "metadata": {"type": "object"}
+        "metadata": {"type": "object"},
+        "next": {"type": "string", "description": "Rule ID to evaluate next (FLOW strategy)"}
       },
       "required": ["action"]
     },
@@ -49,7 +50,8 @@
       "description": "Action to take when condition evaluates to false",
       "properties": {
         "action": {"type": "string"},
-        "metadata": {"type": "object"}
+        "metadata": {"type": "object"},
+        "next": {"type": "string", "description": "Rule ID to evaluate next (FLOW strategy)"}
       },
       "required": ["action"]
     }
